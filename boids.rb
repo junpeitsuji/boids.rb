@@ -14,6 +14,7 @@ NUM_OF_SIMULATION_STEPS = 100
 
 # Boids parameters
 MAXSPEED = 5
+DISTANCE = 15
 
 
 # Boid class definition
@@ -67,7 +68,7 @@ class Boid
 		end
 	end
 
-	# ルール2: 他の個体と向きと速度を合わせようとする
+	# ルール2: 他の個体と距離をとろうとする
 	def rule2
 		dvx = 0
 		dvy = 0
@@ -78,7 +79,7 @@ class Boid
 				dy = other.y - @y
 
 				distance = Math::sqrt(dx*dx + dy*dy)
-				if distance < 15 then
+				if distance < DISTANCE then
 					distance += 0.001
 
 					dvx -= (dx / distance)
@@ -127,8 +128,8 @@ class Boid
 
 	# ルール5: ターゲットに向かう
 	def rule5
-		dx = $targetX - @x
-		dy = $targetY - @y
+		dx = $target.x - @x
+		dy = $target.y - @y
 
 		distance = Math::sqrt(dx*dx + dy*dy)
 
@@ -137,7 +138,7 @@ class Boid
 			@vx += dx / 500
 		end
 		@vy += dy / 500
-		if @vy * dy / 0 then 
+		if @vy * dy < 0 then 
 			@vy += dy / 500
 		end
 
@@ -166,9 +167,21 @@ class Boid
 
 end
 
+
+# ターゲット
+class Target 
+	# 初期化
+	def initialize x,y
+		@x = x
+		@y = y
+	end
+
+	attr_accessor :x, :y
+end
+
+
 # ターゲットの位置
-$targetX = 100.0
-$targetY = 0.0
+$target = Target.new 100,0
 
 # 個体の初期位置
 $startX = 133.0
@@ -179,24 +192,21 @@ $boids = Array.new
 
 # 個体の初期化
 NUM_OF_BOIDS.times do |id|
-	$boids.push Boid.new id,2,10,0,0,true
+	$boids.push Boid.new id,$startX,$startY,0,0,true
 end
 
 
 # シミュレーションループ
 NUM_OF_SIMULATION_STEPS.times do |step|
 	
-	puts "##{step}"
+	puts "#{step},#{$boids.join(',')}"
 
 	$boids.each do |boid|
-		puts boid.to_s
+		#puts boid.to_s
 
 		boid.update
 	end
 	
-	puts ""
 end
-
-
 
 
