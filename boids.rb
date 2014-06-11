@@ -21,7 +21,7 @@ class Boid
 	# initializer
 	def initialize id,x,y,vx,vy,alive
 		@id = id
-		@x = y
+		@x = x
 		@y = y
 		@vx = vx
 		@vy = vy
@@ -179,7 +179,7 @@ $boids = Array.new
 
 # 個体の初期化
 NUM_OF_BOIDS.times do |id|
-	$boids.push Boid.new id,$startX,$startY,0,0,true
+	$boids.push Boid.new id,2,10,0,0,true
 end
 
 
