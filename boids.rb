@@ -1,6 +1,7 @@
 #!/usr/local/rvm/rubies/default/bin/ruby --
 # -*- coding: utf-8 -*-
 
+
 ######################################################
 # Ruby で boids シミュレーション                     #
 # @auther Junpei Tsuji <junpei.tsuji.0509@gmail.com> #
@@ -8,13 +9,27 @@
 
 
 # Simulation parameters
-NUM_OF_BOIDS    = 100
+NUM_OF_BOIDS    = 1000
 FLAME_INTERVALS = 20
-NUM_OF_SIMULATION_STEPS = 100
+NUM_OF_SIMULATION_STEPS = 500
+LEFT = -180.0
+TOP = 0.0
+RIGHT = 180.0
+BOTTOM = 90.0
 
 # Boids parameters
 MAXSPEED = 5
-DISTANCE = 15
+DISTANCE = 0.001
+
+
+A = 1
+B = 2
+C = 0.25
+D = 1
+E = 5
+
+# 速度の単位
+F = 0.1
 
 
 # Boid class definition
@@ -62,8 +77,8 @@ class Boid
 			cx /= (aliveCount - 1)
 			cy /= (aliveCount - 1)
 
-			@vx += (cx - @x) / 1000
-			@vy += (cy - @y) / 1000
+			@vx += A * (cx - @x) / 1000
+			@vy += A * (cy - @y) / 1000
 
 		end
 	end
@@ -80,7 +95,7 @@ class Boid
 
 				distance = Math::sqrt(dx*dx + dy*dy)
 				if distance < DISTANCE then
-					distance += 0.001
+					distance += DISTANCE*0.0000666
 
 					dvx -= (dx / distance)
 					dvy -= (dy / distance)
@@ -88,8 +103,8 @@ class Boid
 			end
 		end 
 
-		@vx += dvx
-		@vy += dvy
+		@vx += B * dvx
+		@vy += B * dvy
 	end
 
 	# ルール3: 他の個体と向きと速度を合わせようとする
@@ -115,15 +130,27 @@ class Boid
 			pvx /= (aliveCount - 1)
 			pvy /= (aliveCount - 1)
 
-			@vx += (pvx - @vx) / 10
-			@vy += (pvy - @vy) / 10
+			@vx += C * (pvx - @vx) / 10
+			@vy += C * (pvy - @vy) / 10
 
 		end
 	end 
 
 	# ルール4: 移動領域を限定する
 	def rule4
-		# 今回は特に何もしない
+		# 壁の近くでは方向転換
+		if @x < LEFT+10 && @vx < 0 then
+			@vx += D * 10 / ( (@x-LEFT).abs + 1 )
+		elsif @x > RIGHT-10 && @vx > 0 then
+			@vx += D * 10 / ( (RIGHT-@x).abs + 1 )
+		end
+		
+		if @y < TOP+10 && @vy < 0 then
+			@vy += D * 10 / ( (@y-TOP).abs + 1 )
+		elsif @y > BOTTOM-10 && @vy > 0 then
+			@vy += D * 10 / ( (BOTTOM-@y).abs + 1 )
+		end
+		
 	end
 
 	# ルール5: ターゲットに向かう
@@ -133,13 +160,13 @@ class Boid
 
 		distance = Math::sqrt(dx*dx + dy*dy)
 
-		@vx += dx / 500
+		@vx += E * (dx / 500)
 		if @vx * dx < 0 then
-			@vx += dx / 500
+			@vx += E * (dx / 500)
 		end
-		@vy += dy / 500
+		@vy += E * (dy / 500)
 		if @vy * dy < 0 then 
-			@vy += dy / 500
+			@vy += E * (dy / 500)
 		end
 
 	end
@@ -160,8 +187,8 @@ class Boid
 				@vy *= MAXSPEED / velocity
 			end
 			
-			@x += @vx
-			@y += @vy
+			@x += F * @vx
+			@y += F * @vy
 		end
 	end
 
@@ -181,11 +208,11 @@ end
 
 
 # ターゲットの位置
-$target = Target.new 100,0
+$target = Target.new -73.943671,40.663455
 
 # 個体の初期位置
-$startX = 133.0
-$startY = 32.0
+$startX = -117.158335
+$startY = 32.715430
 
 # boid の配列
 $boids = Array.new
@@ -196,10 +223,16 @@ NUM_OF_BOIDS.times do |id|
 end
 
 
+File.open("log.csv", "w") do |io|
+
 # シミュレーションループ
 NUM_OF_SIMULATION_STEPS.times do |step|
-	
-	puts "#{step},#{$boids.join(',')}"
+
+	if step.modulo(10) == 0 then 
+		puts "#{step} step"
+	end
+
+	io.puts "#{step},#{$boids.join(',')}"
 
 	$boids.each do |boid|
 		#puts boid.to_s
@@ -209,4 +242,4 @@ NUM_OF_SIMULATION_STEPS.times do |step|
 	
 end
 
-
+end
